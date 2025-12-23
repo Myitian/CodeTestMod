@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "net.myitian.codetest.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "CommandSourceMixin",
+    "LiteralCommandNodeMixin",
+    "TextFieldWidgetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
