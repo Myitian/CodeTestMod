@@ -1,39 +1,72 @@
 plugins {
-	id 'fabric-loom' version '1.14-SNAPSHOT'
-	id 'maven-publish'
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "1.13-SNAPSHOT" apply false
 }
 
-version = project.mod_version
-group = project.maven_group
-
-base {
-	archivesName = project.archives_base_name
+architectury {
+    minecraft = rootProject.minecraft_version
 }
 
-repositories {
-	maven { url "https://maven.shedaniel.me/" }
+subprojects {
+    apply plugin: "dev.architectury.loom"
+
+    version = "${project.mod_version}-${project.name}-${project.version_id}"
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${project.minecraft_version}"
+        mappings loom.layered {
+            officialMojangMappings()
+            parchment("org.parchmentmc.data:parchment-${project.parchment_mappings}@zip")
+        }
+    }
+
+    processResources {
+        def props = [
+                mod_id                                : project.mod_id,
+                mod_version                           : project.version,
+                mod_name                              : project.mod_name,
+                mod_description                       : project.mod_description,
+                mod_license                           : project.mod_license,
+                mod_author                            : project.mod_author,
+                mod_source                            : project.mod_source,
+                maven_group                           : project.maven_group,
+                supported_minecraft_version_fabric    : project.supported_minecraft_version_fabric,
+                supported_minecraft_version_forge     : project.supported_minecraft_version_forge,
+                supported_minecraft_version_neoforge  : project.supported_minecraft_version_neoforge,
+                supported_minecraft_version_forge_like: project.supported_minecraft_version_forge_like,
+        ]
+        inputs.properties props
+
+        filesMatching(["pack.mcmeta", "fabric.mod.json", "META-INF/*mods.toml"]) {
+            expand props
+        }
+    }
 }
 
-dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-}
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
 
-processResources {
-	inputs.property "version", project.version
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
-}
+    group = project.maven_group
+    base {
+        archivesName = project.mod_id
+    }
 
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
-}
+    repositories {
+        maven { url "https://maven.shedaniel.me" }
+        maven { url "https://maven.architectury.dev" }
+        maven { url "https://maven.neoforged.net" }
+        maven { url "https://maven.parchmentmc.org" }
+        maven { url "https://maven.terraformersmc.com" }
+        maven { url "https://maven.su5ed.dev/releases" }
+    }
 
-java {
-	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
+        options.release = 17
+    }
+
+    java {
+        withSourcesJar()
+    }
 }
