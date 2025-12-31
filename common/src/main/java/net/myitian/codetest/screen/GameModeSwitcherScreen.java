@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonWriter;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,11 +29,15 @@ import java.io.IOException;
 public class GameModeSwitcherScreen extends Screen {
     public static final ResourceLocation SLOT_SPRITE = ResourceLocation.tryParse("gamemode_switcher/slot");
     public static final ResourceLocation SELECTION_SPRITE = ResourceLocation.tryParse("gamemode_switcher/selection");
+    public static final ResourceLocation BASE_TEXTURE = ResourceLocation.tryParse("textures/gui/container/gamemode_switcher.png");
     public static final int SLOT_SIZE = 26;
     public static final int SLOT_PADDING = 5;
     public static final int SLOT_PADDED = SLOT_SIZE + SLOT_PADDING;
-    public static final ResourceLocation GAMEMODE_SWITCHER_LOCATION = ResourceLocation.tryParse("textures/gui/container/gamemode_switcher.png");
+    public static final int TEXTURE_SIZE = 128;
+    public static final int BACKGROUND_WIDTH = 125;
+    public static final int BACKGROUND_HEIGHT = 75;
     public static final Component SELECT_KEY = Component.translatable("debug.gamemodes.select_next", Component.translatable("debug.gamemodes.press_f4").withStyle(ChatFormatting.AQUA));
+    public static final boolean MC_23w31a_OR_ABOVE = SharedConstants.getCurrentVersion().getDataVersion().getVersion() >= 3567;
     private final GameModeIcon[] gameModes = Config.gameModes.toArray(new GameModeIcon[0]);
     private final GameModeSlot[] slots = new GameModeSlot[gameModes.length];
     private int current = -1;
@@ -74,7 +79,7 @@ public class GameModeSwitcherScreen extends Screen {
         }
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
         if (minecraft != null && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_F3)) {
             if (current != -1 && minecraft.gameMode != null && minecraft.player != null) {
                 String command = gameModes[current].getCommand();
@@ -85,18 +90,18 @@ public class GameModeSwitcherScreen extends Screen {
             minecraft.setScreen(null);
             return;
         }
-        guiGraphics.pose().pushPose();
+        context.pose().pushPose();
         RenderSystem.enableBlend();
         int halfWidth = width / 2;
         int halfHeight = height / 2;
-        guiGraphics.blit(GAMEMODE_SWITCHER_LOCATION, halfWidth - 62, halfHeight - 58, 0, 0, 125, 75, 128, 128);
-        guiGraphics.pose().popPose();
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        context.blit(BASE_TEXTURE, halfWidth - BACKGROUND_WIDTH / 2, halfHeight - 58, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, TEXTURE_SIZE, TEXTURE_SIZE);
+        context.pose().popPose();
+        super.render(context, mouseX, mouseY, partialTick);
         GameModeIcon currentIcon = getCurrentIcon();
         if (currentIcon != null) {
-            guiGraphics.drawCenteredString(font, currentIcon.getName(), halfWidth, halfHeight - 51, CommonColors.WHITE);
+            context.drawCenteredString(font, currentIcon.getName(), halfWidth, halfHeight - 51, CommonColors.WHITE);
         }
-        guiGraphics.drawCenteredString(font, SELECT_KEY, halfWidth, halfHeight + 5, 0x00ffffff);
+        context.drawCenteredString(font, SELECT_KEY, halfWidth, halfHeight + 5, 0x00ffffff);
         if (!setFirstMousePos) {
             firstMouseX = mouseX;
             firstMouseY = mouseY;
@@ -106,7 +111,7 @@ public class GameModeSwitcherScreen extends Screen {
         boolean mouseNotMoved = firstMouseX == mouseX && firstMouseY == mouseY;
         for (int i = 0; i < slots.length; i++) {
             GameModeSlot slot = slots[i];
-            slot.render(guiGraphics, mouseX, mouseY, partialTick);
+            slot.render(context, mouseX, mouseY, partialTick);
             slot.setSelected(getCurrentIcon() == slot.icon);
             if (!mouseNotMoved && slot.isHoveredOrFocused()) {
                 current = i;
@@ -252,11 +257,11 @@ public class GameModeSwitcherScreen extends Screen {
             this.icon = icon;
         }
 
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            drawSlot(guiGraphics);
-            guiGraphics.renderItem(icon.getRenderItem(), getX() + SLOT_PADDING, getY() + SLOT_PADDING);
+        public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
+            drawSlot(context);
+            context.renderItem(icon.getRenderItem(), getX() + SLOT_PADDING, getY() + SLOT_PADDING);
             if (isSelected) {
-                drawSelection(guiGraphics);
+                drawSelection(context);
             }
 
         }
@@ -273,12 +278,21 @@ public class GameModeSwitcherScreen extends Screen {
             this.isSelected = isSelected;
         }
 
-        private void drawSlot(GuiGraphics guiGraphics) {
-            guiGraphics.blitSprite(SLOT_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
+        private void drawSlot(GuiGraphics context) {
+            if (MC_23w31a_OR_ABOVE) {
+                context.blitSprite(SLOT_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
+            } else {
+                context.blit(BASE_TEXTURE, getX(), getY(), 0, BACKGROUND_HEIGHT, SLOT_SIZE, SLOT_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+            }
         }
 
-        private void drawSelection(GuiGraphics guiGraphics) {
-            guiGraphics.blitSprite(SELECTION_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
+
+        private void drawSelection(GuiGraphics context) {
+            if (MC_23w31a_OR_ABOVE) {
+                context.blitSprite(SELECTION_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
+            } else {
+                context.blit(BASE_TEXTURE, getX(), getY(), SLOT_SIZE, BACKGROUND_HEIGHT, SLOT_SIZE, SLOT_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+            }
         }
     }
 }
