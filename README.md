@@ -4,7 +4,7 @@ A Minecraft mod for prototyping and testing miscellaneous content. Currently, it
 
 > [!IMPORTANT]
 >
-> For the Forge version, a newer version of the Mixin than the one built into Forge is required for the interface mixin `SharedSuggestionProvider_Mixin` to work correctly! Otherwise, it may not work or even cause a crash. It is recommended to provide a newer Mixin version by installing the [Sinytra Connector](https://github.com/Sinytra/Connector) mod.
+> For the Forge version, a newer version of the Mixin (0.8.6+) than the one built into Forge (0.8.5) is required for the interface method mixin `SharedSuggestionProvider_Mixin` to work correctly! Otherwise, it may not work or even cause a crash. It is recommended to provide a newer Mixin version by installing the [Sinytra Connector](https://github.com/Sinytra/Connector) mod.
 
 ## Example Config
 
