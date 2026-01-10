@@ -15,10 +15,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class Config {
     public static final List<GameModeSwitcherScreen.GameModeIcon> defaultGameModes = List.of(
@@ -49,6 +46,8 @@ public final class Config {
     public static boolean enhancedCursorEnabled = true;
     public static boolean noAutoCreateWorldScreen = true;
     public static boolean glfwCommandEnabled = true;
+    public static boolean hitTestCommandEnabled = true;
+    public static boolean reflectionQueryCommandEnabled = true;
     public static boolean offlineIntegratedServer = true;
     public static boolean customGameModeSwitcherScreen = true;
 
@@ -74,6 +73,12 @@ public final class Config {
         map.put("glfwCommandEnabled", Pair.of(
             reader -> glfwCommandEnabled = reader.nextBoolean(),
             writer -> writer.value(glfwCommandEnabled)));
+        map.put("hitTestCommandEnabled", Pair.of(
+            reader -> hitTestCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(hitTestCommandEnabled)));
+        map.put("reflectionQueryCommandEnabled", Pair.of(
+            reader -> reflectionQueryCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(reflectionQueryCommandEnabled)));
         map.put("offlineIntegratedServer", Pair.of(
             reader -> offlineIntegratedServer = reader.nextBoolean(),
             writer -> writer.value(offlineIntegratedServer)));
