@@ -3,14 +3,21 @@ package net.myitian.codetest;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.Vec3;
 import net.myitian.codetest.config.Config;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.*;
 import java.nio.file.Path;
+import java.util.Map;
 
 // Misc utils for this mod
 public final class CodeTest {
@@ -23,7 +30,9 @@ public final class CodeTest {
     public static final Component COMMA = Component.literal(",").withStyle(ChatFormatting.GRAY);
     public static final Component PAIRED_BRACKET = Component.literal("()").withStyle(ChatFormatting.GRAY);
     public static final Component CLOSE_BRACKET = Component.literal(")").withStyle(ChatFormatting.GRAY);
+    public static final Component COLON = Component.literal(":");
     public static final Component SPACE = Component.literal(" ");
+    public static final MobEffectInstance[] EmptyMobEffectInstanceArray = new MobEffectInstance[0];
 
     public static void reloadConfig() {
         File configFile = CONFIG_PATH.toFile();
@@ -334,6 +343,33 @@ public final class CodeTest {
         return result;
     }
 
+    public static @NotNull Component getVec3Component(Vec3 vec3) {
+        return applyCopyToClipboard(Component.literal("(").withStyle(ChatFormatting.WHITE)
+            .append(Component.literal(String.valueOf(vec3.x)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.y)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.z)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(")")));
+    }
+
+    public static @NotNull Component getVec3Component(Vector3f vec3) {
+        return applyCopyToClipboard(Component.literal("(").withStyle(ChatFormatting.WHITE)
+            .append(Component.literal(String.valueOf(vec3.x)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.y)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.z)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(")")));
+    }
+
+    public static @NotNull Component getTagComponent(ResourceLocation tagId) {
+        return applyCopyToClipboard(Component.literal("#")
+            .append(Component.literal(tagId.getNamespace())))
+            .append(COLON)
+            .append(Component.literal(tagId.getPath()));
+    }
+
     public static void printAncestors(CommandFeedback feedback, Class<?> $class) {
         while ($class != null) {
             feedback.sendFeedback(getTypeNameComponent($class));
@@ -342,5 +378,23 @@ public final class CodeTest {
             }
             $class = $class.getSuperclass();
         }
+    }
+
+    public static void printBlockStates(CommandFeedback feedback, BlockState blockState) {
+        Map<Property<?>, Comparable<?>> map = blockState.getValues();
+        if (map.isEmpty()) {
+            feedback.sendFeedback(Component.literal("(None)"));
+        } else {
+            for (Map.Entry<Property<?>, Comparable<?>> entry : map.entrySet()) {
+                Property<?> property = entry.getKey();
+                String line = property.getName() + "=" + getPropertyName(property, entry.getValue());
+                feedback.sendFeedback(applyCopyToClipboard(Component.literal(line)));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Comparable<T>> String getPropertyName(Property<T> property, Comparable<?> value) {
+        return property.getName((T) value);
     }
 }

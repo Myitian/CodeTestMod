@@ -7,13 +7,14 @@ import net.myitian.codetest.CommandBuilder;
 import net.myitian.codetest.CommandFeedback;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 
-@Mod(CodeTest.MOD_ID)
+@Mod(value = CodeTest.MOD_ID, dist = Dist.CLIENT)
 public class CodeTestNeoForge {
-    @Mod.EventBusSubscriber(modid = CodeTest.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    @EventBusSubscriber(modid = CodeTest.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
     public static final class ForgeBus {
         @SubscribeEvent
         public static void onClientCommandRegister(RegisterClientCommandsEvent event) {
@@ -34,7 +35,7 @@ public class CodeTestNeoForge {
         }
     }
 
-    @Mod.EventBusSubscriber(modid = CodeTest.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(modid = CodeTest.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModBus {
         @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event) {

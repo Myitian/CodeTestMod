@@ -9,8 +9,10 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -52,6 +54,8 @@ public record CommandBuilder<S>(
         if (Config.glfwCommandEnabled) {
             consumer.accept(glfwCommand());
         }
+        consumer.accept(cameraInfoCommand());
+        consumer.accept(gcCommand());
         try {
             LitematicaPrinterExtension.fetchInteractiveBlocks();
             consumer.accept(litematicaPrinterCommand());
@@ -123,6 +127,23 @@ public record CommandBuilder<S>(
                         }))));
     }
 
+    public LiteralArgumentBuilder<S> gcCommand() {
+        return literal("gc")
+            .then(literal("info")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    GCMonitorUtils.printGCStats(feedback);
+                    return Command.SINGLE_SUCCESS;
+                }))
+            .then(literal("collect")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    feedback.sendFeedback(Component.literal("System.gc();"));
+                    System.gc();
+                    return Command.SINGLE_SUCCESS;
+                }));
+    }
+
     public LiteralArgumentBuilder<S> hitTestCommand() {
         return literal("hit-test")
             .then(literal("location")
@@ -158,7 +179,42 @@ public record CommandBuilder<S>(
                     }
                     CodeTest.printAncestors(feedback, $class);
                     return Command.SINGLE_SUCCESS;
+                }))
+            .then(literal("data")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    Minecraft minecraft = Minecraft.getInstance();
+                    HitResult hitResult = minecraft.hitResult;
+                    if (hitResult instanceof BlockHitResult blockHitResult) {
+                        BlockState blockState = minecraft.player.level().getBlockState(blockHitResult.getBlockPos());
+                        feedback.sendFeedback(Component.literal("Class:").withStyle(ChatFormatting.YELLOW));
+                        feedback.sendFeedback(CodeTest.getClassNameComponent(blockState.getBlock().getClass()));
+                        feedback.sendFeedback(Component.literal("BlockStates:").withStyle(ChatFormatting.YELLOW));
+                        CodeTest.printBlockStates(feedback, blockState);
+                    } else if (hitResult instanceof EntityHitResult entityHitResult) {
+                        feedback.sendFeedback(Component.literal("Class:").withStyle(ChatFormatting.YELLOW));
+                        feedback.sendFeedback(CodeTest.getClassNameComponent(entityHitResult.getEntity().getClass()));
+                    } else {
+                        // This shouldn't happen. Hit tests in Minecraft should fall back to the air block by default.
+                        return 0;
+                    }
+                    return Command.SINGLE_SUCCESS;
                 }));
+    }
+
+    public LiteralArgumentBuilder<S> cameraInfoCommand() {
+        return literal("camera-info")
+            .executes(context -> {
+                Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+                CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                feedback.sendFeedback(Component.literal("Position:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(CodeTest.getVec3Component(camera.getPosition()));
+                feedback.sendFeedback(Component.literal("LookVector:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(CodeTest.getVec3Component(camera.getLookVector()));
+                feedback.sendFeedback(Component.literal("FluidInCamera:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(Component.literal(camera.getFluidInCamera().toString()));
+                return Command.SINGLE_SUCCESS;
+            });
     }
 
     public LiteralArgumentBuilder<S> reflectionQueryCommand() {

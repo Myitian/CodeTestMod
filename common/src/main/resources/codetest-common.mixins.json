@@ -4,7 +4,9 @@
   "package": "net.myitian.codetest.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "Connection_Mixin",
     "EditBox_Mixin",
+    "Gui_Mixin",
     "IntegratedServer_Mixin",
     "KeyboardHandler_Mixin",
     "LiteralCommandNode_Mixin",

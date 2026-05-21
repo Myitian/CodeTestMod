@@ -15,7 +15,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public final class Config {
     public static final List<GameModeSwitcherScreen.GameModeIcon> defaultGameModes = List.of(
@@ -85,6 +88,9 @@ public final class Config {
         map.put("customGameModeSwitcherScreen", Pair.of(
             reader -> customGameModeSwitcherScreen = reader.nextBoolean(),
             writer -> writer.value(customGameModeSwitcherScreen)));
+        map.put("customHudEffectDisplay", Pair.of(
+            CustomHudEffectDisplay.CODEC::deserialize,
+            CustomHudEffectDisplay.CODEC::serialize));
         map.put("gameModes", Pair.of(
             reader -> ConfigCodec.deserializeCollection(reader, gameModes, GameModeSwitcherScreen.GameModeIcon::deserialize),
             writer -> ConfigCodec.serializeCollection(writer, gameModes)));
@@ -113,5 +119,33 @@ public final class Config {
 
     public static boolean save(JsonWriter writer) throws IOException {
         return CODEC.serialize(writer);
+    }
+
+    public static final class CustomHudEffectDisplay {
+        private static final ConfigCodec CODEC = new ConfigCodec();
+
+        public static boolean enabled = true;
+        public static int maxPixelWidth = 1000000;
+        public static int maxCountWidth = 1000000;
+        public static double maxWidthRatio = 1000000.0F;
+
+        static {
+            registerCodec(CODEC.getFieldMap());
+        }
+
+        public static void registerCodec(Map<String, Pair<ConfigCodec.ConsumerWithIOException<JsonReader>, ConfigCodec.ConsumerWithIOException<JsonWriter>>> map) {
+            map.put("enabled", Pair.of(
+                reader -> enabled = reader.nextBoolean(),
+                writer -> writer.value(enabled)));
+            map.put("maxPixelWidth", Pair.of(
+                reader -> maxPixelWidth = reader.nextInt(),
+                writer -> writer.value(maxPixelWidth)));
+            map.put("maxCountWidth", Pair.of(
+                reader -> maxCountWidth = reader.nextInt(),
+                writer -> writer.value(maxCountWidth)));
+            map.put("maxWidthRatio", Pair.of(
+                reader -> maxWidthRatio = reader.nextDouble(),
+                writer -> writer.value(maxWidthRatio)));
+        }
     }
 }
