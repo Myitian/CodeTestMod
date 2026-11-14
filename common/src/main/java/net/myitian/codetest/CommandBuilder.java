@@ -9,8 +9,15 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.commands.data.BlockDataAccessor;
+import net.minecraft.server.commands.data.DataAccessor;
+import net.minecraft.server.commands.data.EntityDataAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -52,11 +59,22 @@ public record CommandBuilder<S>(
         if (Config.glfwCommandEnabled) {
             consumer.accept(glfwCommand());
         }
-        try {
-            LitematicaPrinterExtension.fetchInteractiveBlocks();
-            consumer.accept(litematicaPrinterCommand());
-        } catch (ReflectiveOperationException e) {
-            CodeTest.LOGGER.info("No LitematicaPrinter found!", e);
+        if (Config.cameraInfoCommandEnabled) {
+            consumer.accept(cameraInfoCommand());
+        }
+        if (Config.blockInfoCommandEnabled) {
+            consumer.accept(blockInfoCommand());
+        }
+        if (Config.gcCommandEnabled) {
+            consumer.accept(gcCommand());
+        }
+        if (Config.litematicaPrinterCommandEnabled) {
+            try {
+                LitematicaPrinterExtension.fetchInteractiveBlocks();
+                consumer.accept(litematicaPrinterCommand());
+            } catch (ReflectiveOperationException e) {
+                CodeTest.LOGGER.info("No LitematicaPrinter found!", e);
+            }
         }
     }
 
@@ -83,7 +101,7 @@ public record CommandBuilder<S>(
                 .then(literal("reset")
                     .then(literal("gameModes")
                         .executes(context -> {
-                            Config.setGamemodes(Config.defaultGameModes);
+                            Config.setGameModes(Config.defaultGameModes);
                             return Command.SINGLE_SUCCESS;
                         })))
                 .then(literal("reload")
@@ -123,6 +141,23 @@ public record CommandBuilder<S>(
                         }))));
     }
 
+    public LiteralArgumentBuilder<S> gcCommand() {
+        return literal("gc")
+            .then(literal("info")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    GCMonitorUtils.printGCStats(feedback);
+                    return Command.SINGLE_SUCCESS;
+                }))
+            .then(literal("collect")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    feedback.sendFeedback(Component.literal("System.gc();"));
+                    System.gc();
+                    return Command.SINGLE_SUCCESS;
+                }));
+    }
+
     public LiteralArgumentBuilder<S> hitTestCommand() {
         return literal("hit-test")
             .then(literal("location")
@@ -144,8 +179,7 @@ public record CommandBuilder<S>(
                     Class<?> $class;
                     if (hitResult instanceof BlockHitResult blockHitResult) {
                         feedback.sendFeedback(Component.literal("BlockHitResult").withStyle(ChatFormatting.YELLOW));
-                        $class = minecraft.player
-                            .level()
+                        $class = minecraft.level
                             .getBlockState(blockHitResult.getBlockPos())
                             .getBlock()
                             .getClass();
@@ -158,7 +192,76 @@ public record CommandBuilder<S>(
                     }
                     CodeTest.printAncestors(feedback, $class);
                     return Command.SINGLE_SUCCESS;
+                }))
+            .then(literal("data")
+                .executes(context -> {
+                    CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                    Minecraft minecraft = Minecraft.getInstance();
+                    HitResult hitResult = minecraft.hitResult;
+                    DataAccessor accessor = null;
+                    if (hitResult instanceof BlockHitResult blockHitResult) {
+                        feedback.sendFeedback(Component.literal("BlockHitResult").withStyle(ChatFormatting.YELLOW));
+                        BlockPos pos = blockHitResult.getBlockPos();
+                        BlockEntity blockEntity = minecraft.level.getBlockEntity(pos);
+                        if (blockEntity != null) {
+                            accessor = new BlockDataAccessor(blockEntity, pos);
+                        }
+                    } else if (hitResult instanceof EntityHitResult entityHitResult) {
+                        feedback.sendFeedback(Component.literal("EntityHitResult").withStyle(ChatFormatting.YELLOW));
+                        accessor = new EntityDataAccessor(entityHitResult.getEntity());
+                    }
+                    if (accessor == null) {
+                        feedback.sendFeedback(Component.literal("No NBT data found!").withStyle(ChatFormatting.RED));
+                        return 0;
+                    } else {
+                        feedback.sendFeedback(accessor.getPrintSuccess(accessor.getData()));
+                    }
+                    return Command.SINGLE_SUCCESS;
                 }));
+    }
+
+    public LiteralArgumentBuilder<S> blockInfoCommand() {
+        return literal("block-info")
+            .then(argument("pos", BlockPosArgument.blockPos())
+                .then(literal("class")
+                    .executes(context -> {
+                        CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                        Minecraft minecraft = Minecraft.getInstance();
+                        BlockPos pos = BlockPosArgumentEx.getInWorldBlockPos(context, minecraft.level, "pos");
+                        Class<?> $class = minecraft.level.getBlockState(pos).getBlock().getClass();
+                        CodeTest.printAncestors(feedback, $class);
+                        return Command.SINGLE_SUCCESS;
+                    }))
+                .then(literal("data")
+                    .executes(context -> {
+                        CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                        Minecraft minecraft = Minecraft.getInstance();
+                        BlockPos pos = BlockPosArgumentEx.getInWorldBlockPos(context, minecraft.level, "pos");
+                        BlockEntity blockEntity = minecraft.level.getBlockEntity(pos);
+                        if (blockEntity == null) {
+                            feedback.sendFeedback(Component.literal("No NBT data found!").withStyle(ChatFormatting.RED));
+                            return 0;
+                        } else {
+                            BlockDataAccessor accessor = new BlockDataAccessor(blockEntity, pos);
+                            feedback.sendFeedback(accessor.getPrintSuccess(accessor.getData()));
+                        }
+                        return Command.SINGLE_SUCCESS;
+                    })));
+    }
+
+    public LiteralArgumentBuilder<S> cameraInfoCommand() {
+        return literal("camera-info")
+            .executes(context -> {
+                Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+                CommandFeedback feedback = getFeedbackWrapper().apply(context.getSource());
+                feedback.sendFeedback(Component.literal("Position:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(CodeTest.getVec3Component(camera.getPosition()));
+                feedback.sendFeedback(Component.literal("LookVector:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(CodeTest.getVec3Component(camera.getLookVector()));
+                feedback.sendFeedback(Component.literal("FluidInCamera:").withStyle(ChatFormatting.AQUA));
+                feedback.sendFeedback(Component.literal(camera.getFluidInCamera().toString()));
+                return Command.SINGLE_SUCCESS;
+            });
     }
 
     public LiteralArgumentBuilder<S> reflectionQueryCommand() {

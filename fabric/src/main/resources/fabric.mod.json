@@ -4,6 +4,7 @@
   "version": "${mod_version}",
   "name": "${mod_name}",
   "description": "${mod_description}",
+  "accessWidener": "${mod_id}.accesswidener",
   "authors": [
     "${mod_author}"
   ],
@@ -14,7 +15,7 @@
   "icon": "pack.png",
   "environment": "client",
   "mixins": [
-    "${mod_id}-common.mixins.json"
+    "${mod_id}.mixins.json"
   ],
   "entrypoints": {
     "client": [
@@ -23,5 +24,8 @@
   },
   "depends": {
     "minecraft": "${supported_minecraft_version_fabric}"
+  },
+  "suggests": {
+    "litematica": "*"
   }
 }

@@ -9,7 +9,7 @@ architectury {
 
 loom {
     forge {
-        mixinConfig "${project.mod_id}-common.mixins.json"
+        mixinConfig "${project.mod_id}.mixins.json"
     }
 }
 
@@ -27,6 +27,8 @@ shadow {
 
 dependencies {
     forge "net.minecraftforge:forge:${project.forge_version}"
+    modImplementation "maven.modrinth:mafglib:${project.mafglib_version}"
+    modImplementation "maven.modrinth:forgematica:${project.forgematica_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class LitematicaPrinterExtension {
+public final class LitematicaPrinterExtension {
     public static final Path CONFIG_PATH = PlatformUtil.getConfigDirectory().resolve("codetest--litematica-printer-extension.txt");
     public static final LinkedHashMap<String, Class<?>> interactiveBlocksMap = new LinkedHashMap<>();
     public static Field interactiveBlocks = null;
@@ -85,7 +85,7 @@ public class LitematicaPrinterExtension {
         try {
             $class = Class.forName("me.aleksilassila.litematica.printer.BlockHelper");
         } catch (ClassNotFoundException e) {
-            CodeTest.LOGGER.info("Failed to get class!", e);
+            CodeTest.LOGGER.info("Failed to get class (me.aleksilassila.litematica.printer.BlockHelper)! Trying 1.20 version...");
             $class = Class.forName("me.aleksilassila.litematica.printer.v1_20.BlockHelper");
         }
         return $class.getField("interactiveBlocks");

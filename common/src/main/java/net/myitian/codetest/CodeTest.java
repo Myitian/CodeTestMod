@@ -3,8 +3,10 @@ package net.myitian.codetest;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
+import net.minecraft.world.phys.Vec3;
 import net.myitian.codetest.config.Config;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -332,6 +334,26 @@ public final class CodeTest {
             result.append(getTypeNameComponent($class));
         }
         return result;
+    }
+
+    public static @NotNull Component getVec3Component(Vec3 vec3) {
+        return applyCopyToClipboard(Component.literal("(").withStyle(ChatFormatting.WHITE)
+            .append(Component.literal(String.valueOf(vec3.x)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.y)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.z)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(")")));
+    }
+
+    public static @NotNull Component getVec3Component(Vector3f vec3) {
+        return applyCopyToClipboard(Component.literal("(").withStyle(ChatFormatting.WHITE)
+            .append(Component.literal(String.valueOf(vec3.x)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.y)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(", "))
+            .append(Component.literal(String.valueOf(vec3.z)).withStyle(ChatFormatting.GREEN))
+            .append(Component.literal(")")));
     }
 
     public static void printAncestors(CommandFeedback feedback, Class<?> $class) {

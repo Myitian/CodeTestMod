@@ -15,7 +15,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public final class Config {
     public static final List<GameModeSwitcherScreen.GameModeIcon> defaultGameModes = List.of(
@@ -42,11 +45,16 @@ public final class Config {
     );
     public static final ArrayList<GameModeSwitcherScreen.GameModeIcon> gameModes = new ArrayList<>(defaultGameModes);
     private static final ConfigCodec CODEC = new ConfigCodec();
-    public static boolean enhancedMatchingEnabled = true;
     public static boolean enhancedCursorEnabled = true;
+    public static boolean enhancedMatchingEnabled = true;
+    public static boolean enhancedSchematicPastingEnabled = true;
     public static boolean noAutoCreateWorldScreen = true;
+    public static boolean blockInfoCommandEnabled = true;
+    public static boolean cameraInfoCommandEnabled = true;
+    public static boolean gcCommandEnabled = true;
     public static boolean glfwCommandEnabled = true;
     public static boolean hitTestCommandEnabled = true;
+    public static boolean litematicaPrinterCommandEnabled = true;
     public static boolean reflectionQueryCommandEnabled = true;
     public static boolean offlineIntegratedServer = true;
     public static boolean customGameModeSwitcherScreen = true;
@@ -55,27 +63,42 @@ public final class Config {
         registerCodec(CODEC.getFieldMap());
     }
 
-    public static void setGamemodes(Collection<GameModeSwitcherScreen.GameModeIcon> gameModes) {
+    public static void setGameModes(Collection<GameModeSwitcherScreen.GameModeIcon> gameModes) {
         Config.gameModes.clear();
         Config.gameModes.addAll(gameModes);
     }
 
     public static void registerCodec(Map<String, Pair<ConfigCodec.ConsumerWithIOException<JsonReader>, ConfigCodec.ConsumerWithIOException<JsonWriter>>> map) {
-        map.put("enhancedMatchingEnabled", Pair.of(
-            reader -> enhancedMatchingEnabled = reader.nextBoolean(),
-            writer -> writer.value(enhancedMatchingEnabled)));
         map.put("enhancedCursorEnabled", Pair.of(
             reader -> enhancedCursorEnabled = reader.nextBoolean(),
             writer -> writer.value(enhancedCursorEnabled)));
+        map.put("enhancedMatchingEnabled", Pair.of(
+            reader -> enhancedMatchingEnabled = reader.nextBoolean(),
+            writer -> writer.value(enhancedMatchingEnabled)));
+        map.put("enhancedSchematicPastingEnabled", Pair.of(
+            reader -> enhancedSchematicPastingEnabled = reader.nextBoolean(),
+            writer -> writer.value(enhancedSchematicPastingEnabled)));
         map.put("noAutoCreateWorldScreen", Pair.of(
             reader -> noAutoCreateWorldScreen = reader.nextBoolean(),
             writer -> writer.value(noAutoCreateWorldScreen)));
+        map.put("blockInfoCommandEnabled", Pair.of(
+            reader -> blockInfoCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(blockInfoCommandEnabled)));
+        map.put("cameraInfoCommandEnabled", Pair.of(
+            reader -> cameraInfoCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(cameraInfoCommandEnabled)));
+        map.put("gcCommandEnabled", Pair.of(
+            reader -> gcCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(gcCommandEnabled)));
         map.put("glfwCommandEnabled", Pair.of(
             reader -> glfwCommandEnabled = reader.nextBoolean(),
             writer -> writer.value(glfwCommandEnabled)));
         map.put("hitTestCommandEnabled", Pair.of(
             reader -> hitTestCommandEnabled = reader.nextBoolean(),
             writer -> writer.value(hitTestCommandEnabled)));
+        map.put("litematicaPrinterCommandEnabled", Pair.of(
+            reader -> litematicaPrinterCommandEnabled = reader.nextBoolean(),
+            writer -> writer.value(litematicaPrinterCommandEnabled)));
         map.put("reflectionQueryCommandEnabled", Pair.of(
             reader -> reflectionQueryCommandEnabled = reader.nextBoolean(),
             writer -> writer.value(reflectionQueryCommandEnabled)));

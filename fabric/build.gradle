@@ -2,6 +2,10 @@ plugins {
     id "com.gradleup.shadow" version "9.2.2"
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/codetest.accesswidener")
+}
+
 architectury {
     platformSetupLoomIde()
     fabric()
@@ -22,6 +26,8 @@ shadow {
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    modImplementation "maven.modrinth:malilib:${project.malilib_version}"
+    modImplementation "maven.modrinth:litematica:${project.litematica_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
