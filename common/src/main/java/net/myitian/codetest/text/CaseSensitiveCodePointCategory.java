@@ -1,7 +1,9 @@
-package net.myitian.codetest;
+package net.myitian.codetest.text;
 
-public enum CodePointCategory {
-    LETTER,
+public enum CaseSensitiveCodePointCategory {
+    UPPERCASE_LETTER,
+    LOWERCASE_LETTER,
+    OTHER_LETTER,
     MARK,
     NUMBER,
     SEPARATOR,
@@ -9,13 +11,13 @@ public enum CodePointCategory {
     PUNCTUATION,
     SYMBOL;
 
-    public static CodePointCategory get(int codePoint) {
+    public static CaseSensitiveCodePointCategory get(int codePoint) {
         return switch (Character.getType(codePoint)) {
-            case Character.UPPERCASE_LETTER,
-                 Character.LOWERCASE_LETTER,
-                 Character.TITLECASE_LETTER,
+            case Character.UPPERCASE_LETTER -> UPPERCASE_LETTER;
+            case Character.LOWERCASE_LETTER -> LOWERCASE_LETTER;
+            case Character.TITLECASE_LETTER,
                  Character.MODIFIER_LETTER,
-                 Character.OTHER_LETTER -> LETTER;
+                 Character.OTHER_LETTER -> OTHER_LETTER;
             case Character.NON_SPACING_MARK,
                  Character.ENCLOSING_MARK,
                  Character.COMBINING_SPACING_MARK -> MARK;

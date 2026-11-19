@@ -21,15 +21,17 @@ import net.minecraft.util.CommonColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.myitian.codetest.config.Config;
-import net.myitian.codetest.config.ConfigCodec;
+import net.myitian.codetest.serialization.JsonSerialization;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class GameModeSwitcherScreen extends Screen {
-    public static final ResourceLocation SLOT_SPRITE = ResourceLocation.tryParse("gamemode_switcher/slot");
-    public static final ResourceLocation SELECTION_SPRITE = ResourceLocation.tryParse("gamemode_switcher/selection");
-    public static final ResourceLocation BASE_TEXTURE = ResourceLocation.tryParse("textures/gui/container/gamemode_switcher.png");
+    public static final ResourceLocation SLOT_SPRITE = Objects.requireNonNull(ResourceLocation.tryParse("gamemode_switcher/slot"));
+    public static final ResourceLocation SELECTION_SPRITE = Objects.requireNonNull(ResourceLocation.tryParse("gamemode_switcher/selection"));
+    public static final ResourceLocation BASE_TEXTURE = Objects.requireNonNull(ResourceLocation.tryParse("textures/gui/container/gamemode_switcher.png"));
     public static final int SLOT_SIZE = 26;
     public static final int SLOT_PADDING = 5;
     public static final int SLOT_PADDED = SLOT_SIZE + SLOT_PADDING;
@@ -69,6 +71,10 @@ public class GameModeSwitcherScreen extends Screen {
         return GameType.CREATIVE;
     }
 
+    private @Nullable GameModeIcon getCurrentIcon() {
+        return current == -1 ? null : gameModes[current];
+    }
+
     protected void init() {
         super.init();
         int totalWidth = gameModes.length * SLOT_PADDED - SLOT_PADDING;
@@ -76,6 +82,20 @@ public class GameModeSwitcherScreen extends Screen {
             slots[i] = new GameModeSlot(gameModes[i],
                 width / 2 - totalWidth / 2 + i * SLOT_PADDED,
                 height / 2 - SLOT_PADDED);
+        }
+    }
+
+    public boolean isPauseScreen() {
+        return false;
+    }
+
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_F4) {
+            setFirstMousePos = false;
+            current = gameModes.length == 0 ? -1 : (current + 1) % gameModes.length;
+            return true;
+        } else {
+            return super.keyPressed(keyCode, scanCode, modifiers);
         }
     }
 
@@ -119,38 +139,20 @@ public class GameModeSwitcherScreen extends Screen {
         }
     }
 
-    private GameModeIcon getCurrentIcon() {
-        return current == -1 ? null : gameModes[current];
-    }
-
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
     }
 
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_F4) {
-            setFirstMousePos = false;
-            current = gameModes.length == 0 ? -1 : (current + 1) % gameModes.length;
-            return true;
-        } else {
-            return super.keyPressed(keyCode, scanCode, modifiers);
-        }
-    }
-
-    public boolean isPauseScreen() {
-        return false;
-    }
-
-    public static class GameModeIcon implements ConfigCodec.Serializable {
-        GameType type;
+    public static class GameModeIcon {
+        @Nullable GameType type;
         Component name;
-        String command;
+        @Nullable String command;
         ItemStack renderItem;
 
         public GameModeIcon() {
             this(null, null, null, null);
         }
 
-        public GameModeIcon(GameType type, Component name, String command, ItemStack renderItem) {
+        public GameModeIcon(@Nullable GameType type, @Nullable Component name, @Nullable String command, @Nullable ItemStack renderItem) {
             setType(type);
             setName(name);
             setCommand(command);
@@ -180,7 +182,7 @@ public class GameModeSwitcherScreen extends Screen {
                                     selection.setType(GameType.byName(reader.nextString(), null));
                                 }
                             }
-                            case "name" -> selection.setName(ConfigCodec.deserializeComponent(reader));
+                            case "name" -> selection.setName(JsonSerialization.deserializeComponent(reader));
                             case "command" -> {
                                 if (reader.peek() == JsonToken.NULL) {
                                     reader.nextNull();
@@ -189,7 +191,7 @@ public class GameModeSwitcherScreen extends Screen {
                                     selection.setCommand(reader.nextString());
                                 }
                             }
-                            case "item" -> selection.setRenderItem(ConfigCodec.deserializeItemStack(reader));
+                            case "item" -> selection.setRenderItem(JsonSerialization.deserializeItemStack(reader));
                             default -> reader.skipValue();
                         }
                     }
@@ -198,36 +200,36 @@ public class GameModeSwitcherScreen extends Screen {
             return selection;
         }
 
-        public GameType getType() {
-            return type;
+        public @Nullable String getCommand() {
+            return command;
         }
 
-        public void setType(GameType type) {
-            this.type = type;
+        public void setCommand(@Nullable String command) {
+            this.command = command;
         }
 
         public Component getName() {
             return name;
         }
 
-        public void setName(Component name) {
+        public void setName(@Nullable Component name) {
             this.name = name == null ? CommonComponents.EMPTY : name;
-        }
-
-        public String getCommand() {
-            return command;
-        }
-
-        public void setCommand(String command) {
-            this.command = command;
         }
 
         public ItemStack getRenderItem() {
             return renderItem;
         }
 
-        public void setRenderItem(ItemStack renderItem) {
+        public void setRenderItem(@Nullable ItemStack renderItem) {
             this.renderItem = renderItem == null ? ItemStack.EMPTY : renderItem;
+        }
+
+        public @Nullable GameType getType() {
+            return type;
+        }
+
+        public void setType(@Nullable GameType type) {
+            this.type = type;
         }
 
         public void serialize(JsonWriter writer) throws IOException {
@@ -239,11 +241,11 @@ public class GameModeSwitcherScreen extends Screen {
                 writer.value(type.getName());
             }
             writer.name("name");
-            ConfigCodec.serializeComponent(writer, name);
+            JsonSerialization.serializeComponent(writer, name);
             writer.name("command");
             writer.value(command);
             writer.name("item");
-            ConfigCodec.serializeItemStack(writer, renderItem);
+            JsonSerialization.serializeItemStack(writer, renderItem);
             writer.endObject();
         }
     }
@@ -257,25 +259,12 @@ public class GameModeSwitcherScreen extends Screen {
             this.icon = icon;
         }
 
-        public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
-            drawSlot(context);
-            context.renderItem(icon.getRenderItem(), getX() + SLOT_PADDING, getY() + SLOT_PADDING);
-            if (isSelected) {
-                drawSelection(context);
+        private void drawSelection(GuiGraphics context) {
+            if (MC_23w31a_OR_ABOVE) {
+                context.blitSprite(SELECTION_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
+            } else {
+                context.blit(BASE_TEXTURE, getX(), getY(), SLOT_SIZE, BACKGROUND_HEIGHT, SLOT_SIZE, SLOT_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
             }
-
-        }
-
-        public void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-            defaultButtonNarrationText(narrationElementOutput);
-        }
-
-        public boolean isHoveredOrFocused() {
-            return super.isHoveredOrFocused() || isSelected;
-        }
-
-        public void setSelected(boolean isSelected) {
-            this.isSelected = isSelected;
         }
 
         private void drawSlot(GuiGraphics context) {
@@ -286,13 +275,25 @@ public class GameModeSwitcherScreen extends Screen {
             }
         }
 
+        public boolean isHoveredOrFocused() {
+            return super.isHoveredOrFocused() || isSelected;
+        }
 
-        private void drawSelection(GuiGraphics context) {
-            if (MC_23w31a_OR_ABOVE) {
-                context.blitSprite(SELECTION_SPRITE, getX(), getY(), SLOT_SIZE, SLOT_SIZE);
-            } else {
-                context.blit(BASE_TEXTURE, getX(), getY(), SLOT_SIZE, BACKGROUND_HEIGHT, SLOT_SIZE, SLOT_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+        public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
+            drawSlot(context);
+            context.renderItem(icon.getRenderItem(), getX() + SLOT_PADDING, getY() + SLOT_PADDING);
+            if (isSelected) {
+                drawSelection(context);
             }
+
+        }
+
+        public void setSelected(boolean isSelected) {
+            this.isSelected = isSelected;
+        }
+
+        public void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+            defaultButtonNarrationText(narrationElementOutput);
         }
     }
 }

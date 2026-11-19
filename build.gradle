@@ -7,6 +7,8 @@ architectury {
     minecraft = rootProject.minecraft_version
 }
 
+def customMappings = file("custom-mappings.tiny")
+
 subprojects {
     apply plugin: "dev.architectury.loom"
 
@@ -15,6 +17,7 @@ subprojects {
     dependencies {
         minecraft "com.mojang:minecraft:${project.minecraft_version}"
         mappings loom.layered {
+            mappings customMappings
             officialMojangMappings()
             parchment("org.parchmentmc.data:parchment-${project.parchment_mappings}@zip")
         }

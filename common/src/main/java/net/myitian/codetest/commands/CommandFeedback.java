@@ -1,9 +1,9 @@
-package net.myitian.codetest;
+package net.myitian.codetest.commands;
 
 import net.minecraft.network.chat.Component;
 
 public interface CommandFeedback {
-    void sendFeedback(Component msg);
-
     void sendError(Component msg);
+
+    void sendFeedback(Component msg);
 }

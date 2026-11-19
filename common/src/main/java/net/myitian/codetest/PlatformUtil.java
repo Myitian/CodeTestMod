@@ -8,17 +8,17 @@ import java.nio.file.Path;
 
 public final class PlatformUtil {
     @ExpectPlatform
+    public static <S> BlockPos getBlockPos(Coordinates coordinates, S source) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
     public static Path getConfigDirectory() {
         throw new AssertionError();
     }
 
     @ExpectPlatform
     public static boolean isModLoaded(String modId) {
-        throw new AssertionError();
-    }
-
-    @ExpectPlatform
-    public static <S> BlockPos getBlockPos(Coordinates coordinates, S source) {
         throw new AssertionError();
     }
 }

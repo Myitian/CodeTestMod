@@ -10,8 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 import net.myitian.codetest.CodeTest;
-import net.myitian.codetest.CommandBuilder;
-import net.myitian.codetest.CommandFeedback;
+import net.myitian.codetest.commands.CommandBuilder;
+import net.myitian.codetest.commands.CommandFeedback;
 
 public class CodeTestFabric implements ClientModInitializer {
     private static void commonSetup(Minecraft client) {

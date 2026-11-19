@@ -8,8 +8,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.myitian.codetest.CodeTest;
-import net.myitian.codetest.CommandBuilder;
-import net.myitian.codetest.CommandFeedback;
+import net.myitian.codetest.commands.CommandBuilder;
+import net.myitian.codetest.commands.CommandFeedback;
 
 @Mod(CodeTest.MOD_ID)
 public final class CodeTestForge {

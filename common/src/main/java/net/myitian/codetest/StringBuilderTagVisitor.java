@@ -26,32 +26,12 @@ public class StringBuilderTagVisitor implements TagVisitor {
         return true;
     }
 
-    public void visitString(StringTag tag) {
-        builder.append(StringTag.quoteAndEscape(tag.getAsString()));
+    public String toString() {
+        return builder.toString();
     }
 
     public void visitByte(ByteTag tag) {
         builder.append(tag.getAsByte()).append('b');
-    }
-
-    public void visitShort(ShortTag tag) {
-        builder.append(tag.getAsShort()).append('s');
-    }
-
-    public void visitInt(IntTag tag) {
-        builder.append(tag.getAsInt());
-    }
-
-    public void visitLong(LongTag tag) {
-        builder.append(tag.getAsLong()).append('L');
-    }
-
-    public void visitFloat(FloatTag tag) {
-        builder.append(tag.getAsFloat()).append('f');
-    }
-
-    public void visitDouble(DoubleTag tag) {
-        builder.append(tag.getAsDouble()).append('d');
     }
 
     public void visitByteArray(ByteArrayTag tag) {
@@ -62,41 +42,6 @@ public class StringBuilderTagVisitor implements TagVisitor {
                 builder.append(',');
             }
             builder.append(bs[i]).append('B');
-        }
-        builder.append(']');
-    }
-
-    public void visitIntArray(IntArrayTag tag) {
-        int[] is = tag.getAsIntArray();
-        builder.append("[I;");
-        for (int i = 0; i < is.length; i++) {
-            if (i != 0) {
-                builder.append(',');
-            }
-            builder.append(is[i]);
-        }
-        builder.append(']');
-    }
-
-    public void visitLongArray(LongArrayTag tag) {
-        long[] ls = tag.getAsLongArray();
-        builder.append("[L;");
-        for (int i = 0; i < ls.length; i++) {
-            if (i != 0) {
-                builder.append(',');
-            }
-            builder.append(ls[i]).append('L');
-        }
-        builder.append(']');
-    }
-
-    public void visitList(ListTag tag) {
-        builder.append('[');
-        for (int i = 0; i < tag.size(); i++) {
-            if (i != 0) {
-                builder.append(',');
-            }
-            tag.get(i).accept(this);
         }
         builder.append(']');
     }
@@ -118,10 +63,65 @@ public class StringBuilderTagVisitor implements TagVisitor {
         builder.append('}');
     }
 
+    public void visitDouble(DoubleTag tag) {
+        builder.append(tag.getAsDouble()).append('d');
+    }
+
     public void visitEnd(EndTag tag) {
     }
 
-    public String toString() {
-        return builder.toString();
+    public void visitFloat(FloatTag tag) {
+        builder.append(tag.getAsFloat()).append('f');
+    }
+
+    public void visitInt(IntTag tag) {
+        builder.append(tag.getAsInt());
+    }
+
+    public void visitIntArray(IntArrayTag tag) {
+        int[] is = tag.getAsIntArray();
+        builder.append("[I;");
+        for (int i = 0; i < is.length; i++) {
+            if (i != 0) {
+                builder.append(',');
+            }
+            builder.append(is[i]);
+        }
+        builder.append(']');
+    }
+
+    public void visitList(ListTag tag) {
+        builder.append('[');
+        for (int i = 0; i < tag.size(); i++) {
+            if (i != 0) {
+                builder.append(',');
+            }
+            tag.get(i).accept(this);
+        }
+        builder.append(']');
+    }
+
+    public void visitLong(LongTag tag) {
+        builder.append(tag.getAsLong()).append('L');
+    }
+
+    public void visitLongArray(LongArrayTag tag) {
+        long[] ls = tag.getAsLongArray();
+        builder.append("[L;");
+        for (int i = 0; i < ls.length; i++) {
+            if (i != 0) {
+                builder.append(',');
+            }
+            builder.append(ls[i]).append('L');
+        }
+        builder.append(']');
+    }
+
+    public void visitShort(ShortTag tag) {
+        builder.append(tag.getAsShort()).append('s');
+    }
+
+    public void visitString(StringTag tag) {
+        builder.append(StringTag.quoteAndEscape(tag.getAsString()));
     }
 }

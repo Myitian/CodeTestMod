@@ -1,3 +1,5 @@
+import net.fabricmc.loom.LoomGradleExtension
+
 plugins {
     id "com.gradleup.shadow" version "9.2.2"
 }
@@ -5,6 +7,10 @@ plugins {
 architectury {
     platformSetupLoomIde()
     neoForge()
+}
+
+loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
 configurations {
@@ -43,4 +49,29 @@ sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
+}
+
+afterEvaluate {
+//  copied from Aw2At.setup
+    LoomGradleExtension extension = LoomGradleExtension.get(project)
+    if (extension.getAccessWidenerPath().isPresent()) {
+        // Find the relative AW file name
+        String awName = null
+        java.nio.file.Path awPath = extension.getAccessWidenerPath().get().getAsFile().toPath()
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class)
+        SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        boolean found = false
+        for (File srcDir : main.getResources().getSrcDirs()) {
+            java.nio.file.Path srcDirPath = srcDir.toPath().toAbsolutePath()
+            if (awPath.startsWith(srcDirPath)) {
+                awName = srcDirPath.relativize(awPath).toString().replace(File.separator, "/")
+                found = true
+                break
+            }
+        }
+        if (!found) {
+            awName = awPath.getFileName().toString()
+        }
+        remapJar.getAtAccessWideners().add(awName)
+    }
 }

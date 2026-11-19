@@ -4,8 +4,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.myitian.codetest.CodeTest;
 import net.myitian.codetest.config.Config;
+import net.myitian.codetest.text.TextUtil;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,7 +28,7 @@ abstract class LiteralCommandNode_Mixin {
         if (!Config.enhancedMatchingEnabled)
             return;
 
-        if (CodeTest.isLiteralMatch(literal, builder.getRemaining()))
+        if (TextUtil.isLiteralMatch(literal, builder.getRemaining()))
             ci.setReturnValue(builder.suggest(literal).buildFuture());
         else
             ci.setReturnValue(Suggestions.empty());

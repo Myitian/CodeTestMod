@@ -9,6 +9,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.myitian.codetest.CodeTest;
 import net.myitian.codetest.screen.GameModeSwitcherScreen;
+import net.myitian.codetest.serialization.ConsumerWithIOException;
+import net.myitian.codetest.serialization.JsonSerialization;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
@@ -63,12 +65,17 @@ public final class Config {
         registerCodec(CODEC.getFieldMap());
     }
 
-    public static void setGameModes(Collection<GameModeSwitcherScreen.GameModeIcon> gameModes) {
-        Config.gameModes.clear();
-        Config.gameModes.addAll(gameModes);
+    public static boolean load(File configFile) {
+        try (var reader = new JsonReader(new FileReader(configFile))) {
+            reader.setLenient(true);
+            return CODEC.deserialize(reader);
+        } catch (Exception e) {
+            CodeTest.LOGGER.info("Failed to read config: {}", e.getLocalizedMessage());
+        }
+        return false;
     }
 
-    public static void registerCodec(Map<String, Pair<ConfigCodec.ConsumerWithIOException<JsonReader>, ConfigCodec.ConsumerWithIOException<JsonWriter>>> map) {
+    public static void registerCodec(Map<String, Pair<ConsumerWithIOException<JsonReader>, ConsumerWithIOException<JsonWriter>>> map) {
         map.put("enhancedCursorEnabled", Pair.of(
             reader -> enhancedCursorEnabled = reader.nextBoolean(),
             writer -> writer.value(enhancedCursorEnabled)));
@@ -109,18 +116,25 @@ public final class Config {
             reader -> customGameModeSwitcherScreen = reader.nextBoolean(),
             writer -> writer.value(customGameModeSwitcherScreen)));
         map.put("gameModes", Pair.of(
-            reader -> ConfigCodec.deserializeCollection(reader, gameModes, GameModeSwitcherScreen.GameModeIcon::deserialize),
-            writer -> ConfigCodec.serializeCollection(writer, gameModes)));
+            reader -> JsonSerialization.deserializeToCollection(reader, gameModes, GameModeSwitcherScreen.GameModeIcon::deserialize, true),
+            writer -> JsonSerialization.serializeIterable(writer, gameModes, GameModeSwitcherScreen.GameModeIcon::serialize)));
     }
 
-    public static boolean load(File configFile) {
-        try (var reader = new JsonReader(new FileReader(configFile))) {
-            reader.setLenient(true);
-            return CODEC.deserialize(reader);
-        } catch (Exception e) {
-            CodeTest.LOGGER.info("Failed to read config: {}", e.getLocalizedMessage());
-        }
-        return false;
+    public static void reset() {
+        setGameModes(defaultGameModes);
+        enhancedCursorEnabled = true;
+        enhancedMatchingEnabled = true;
+        enhancedSchematicPastingEnabled = true;
+        noAutoCreateWorldScreen = true;
+        blockInfoCommandEnabled = true;
+        cameraInfoCommandEnabled = true;
+        gcCommandEnabled = true;
+        glfwCommandEnabled = true;
+        hitTestCommandEnabled = true;
+        litematicaPrinterCommandEnabled = true;
+        reflectionQueryCommandEnabled = true;
+        offlineIntegratedServer = true;
+        customGameModeSwitcherScreen = true;
     }
 
     public static boolean save(File configFile) {
@@ -136,5 +150,10 @@ public final class Config {
 
     public static boolean save(JsonWriter writer) throws IOException {
         return CODEC.serialize(writer);
+    }
+
+    public static void setGameModes(Collection<GameModeSwitcherScreen.GameModeIcon> gameModes) {
+        Config.gameModes.clear();
+        Config.gameModes.addAll(gameModes);
     }
 }

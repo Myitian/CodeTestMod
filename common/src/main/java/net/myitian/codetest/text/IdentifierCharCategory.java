@@ -1,11 +1,11 @@
-package net.myitian.codetest;
+package net.myitian.codetest.text;
 
-public enum CharCategory {
+public enum IdentifierCharCategory {
     NUMBER,
     SYMBOL,
     LETTER;
 
-    public static CharCategory get(char c) {
+    public static IdentifierCharCategory get(char c) {
         if (c >= 'a' && c <= 'z')
             return LETTER;
         if (c >= '0' && c <= '9')

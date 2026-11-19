@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.myitian.codetest.commands.CommandFeedback;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -58,27 +59,29 @@ public final class GCMonitorUtils {
         .append(COMMA).append("775")
         .append(COMMA).append("808");
 
-    public static void printGCStats(CommandFeedback feedback) {
-        List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
-
-        feedback.sendFeedback(HEADER);
-        for (int i = 0, gcBeansSize = gcBeans.size(); i < gcBeansSize; i++) {
-            GarbageCollectorMXBean bean = gcBeans.get(i);
-            feedback.sendFeedback(Component.literal(bean.getName()).withStyle(ChatFormatting.GREEN));
-            feedback.sendFeedback(COUNT.copy()
-                .append(Component.literal(String.valueOf(bean.getCollectionCount()))
-                    .withStyle(ChatFormatting.AQUA)));
-            MutableComponent time = TIME.copy();
-            time.getSiblings().set(0, Component.literal(String.valueOf(bean.getCollectionCount()))
-                .withStyle(ChatFormatting.AQUA));
-            feedback.sendFeedback(time);
-            try {
-                printExtendedStats(bean, feedback);
-            } catch (Exception ignored) {
-            }
-            feedback.sendFeedback(FOOTER.copy()
-                .append(Component.literal(String.valueOf(i + 1)).withStyle(ChatFormatting.BLUE)));
+    private static Component formatGroupedNumber(long number) {
+        if (number == 0) {
+            return ZERO;
+        } else if (number == Long.MIN_VALUE) {
+            return MIN_VALUE;
         }
+        boolean isNegative = number < 0;
+        number = Math.abs(number);
+        char[] buffer = new char[3];
+        List<Component> parts = new ArrayList<>(6);
+        while (number >= 1000) {
+            buffer[2] = (char) ((number % 10) | '0');
+            buffer[1] = (char) ((number / 10 % 10) | '0');
+            buffer[0] = (char) ((number / 100 % 10) | '0');
+            parts.add(Component.literal(String.copyValueOf(buffer)));
+            number /= 1000;
+        }
+        MutableComponent result = Component.literal(String.valueOf(isNegative ? -number : number))
+            .withStyle(ChatFormatting.AQUA);
+        for (int i = parts.size(); i-- > 0; ) {
+            result.append(COMMA).append(parts.get(i));
+        }
+        return result;
     }
 
     private static void printExtendedStats(GarbageCollectorMXBean bean, CommandFeedback feedback) {
@@ -113,28 +116,26 @@ public final class GCMonitorUtils {
         }
     }
 
-    private static Component formatGroupedNumber(long number) {
-        if (number == 0) {
-            return ZERO;
-        } else if (number == Long.MIN_VALUE) {
-            return MIN_VALUE;
+    public static void printGCStats(CommandFeedback feedback) {
+        List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+
+        feedback.sendFeedback(HEADER);
+        for (int i = 0, gcBeansSize = gcBeans.size(); i < gcBeansSize; i++) {
+            GarbageCollectorMXBean bean = gcBeans.get(i);
+            feedback.sendFeedback(Component.literal(bean.getName()).withStyle(ChatFormatting.GREEN));
+            feedback.sendFeedback(COUNT.copy()
+                .append(Component.literal(String.valueOf(bean.getCollectionCount()))
+                    .withStyle(ChatFormatting.AQUA)));
+            MutableComponent time = TIME.copy();
+            time.getSiblings().set(0, Component.literal(String.valueOf(bean.getCollectionCount()))
+                .withStyle(ChatFormatting.AQUA));
+            feedback.sendFeedback(time);
+            try {
+                printExtendedStats(bean, feedback);
+            } catch (Exception ignored) {
+            }
+            feedback.sendFeedback(FOOTER.copy()
+                .append(Component.literal(String.valueOf(i + 1)).withStyle(ChatFormatting.BLUE)));
         }
-        boolean isNegative = number < 0;
-        number = Math.abs(number);
-        char[] buffer = new char[3];
-        List<Component> parts = new ArrayList<>(6);
-        while (number >= 1000) {
-            buffer[2] = (char) ((number % 10) | '0');
-            buffer[1] = (char) ((number / 10 % 10) | '0');
-            buffer[0] = (char) ((number / 100 % 10) | '0');
-            parts.add(Component.literal(String.copyValueOf(buffer)));
-            number /= 1000;
-        }
-        MutableComponent result = Component.literal(String.valueOf(isNegative ? -number : number))
-            .withStyle(ChatFormatting.AQUA);
-        for (int i = parts.size(); i-- > 0; ) {
-            result.append(COMMA).append(parts.get(i));
-        }
-        return result;
     }
 }
