@@ -31,7 +31,7 @@ dependencies {
     modImplementation "maven.modrinth:mafglib:${project.mafglib_version}"
     modImplementation "maven.modrinth:forgematica:${project.forgematica_version}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 

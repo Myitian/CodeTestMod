@@ -29,8 +29,8 @@ dependencies {
     modImplementation "maven.modrinth:malilib:${project.malilib_version}"
     modImplementation "maven.modrinth:litematica:${project.litematica_version}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
 }
 
 shadowJar {
